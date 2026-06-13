@@ -1,0 +1,482 @@
+/* ═══════════════════════════════════════════════════════════════
+   KBC - Kaun Banega Crorepati  |  style.css
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Reset & Base ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --gold:       #f5c518;
+  --gold-dark:  #c89b00;
+  --gold-light: #ffe680;
+  --bg-deep:    #03060f;
+  --bg-card:    #0a1128;
+  --bg-option:  #0d1a3a;
+  --border:     #1e3060;
+  --blue-glow:  #1a4fd6;
+  --correct:    #22c55e;
+  --wrong:      #ef4444;
+  --white:      #ffffff;
+  --muted:      #8899bb;
+  --font:       'Segoe UI', 'Arial', sans-serif;
+  --radius:     12px;
+  --radius-sm:  8px;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg-deep);
+  color: var(--white);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ── Screens ──────────────────────────────────────────────────── */
+.screen { display: none; width: 100%; }
+.screen.active { display: flex; flex-direction: column; align-items: center; }
+
+/* ── Header Bar ───────────────────────────────────────────────── */
+header {
+  width: 100%;
+  background: linear-gradient(90deg, #0a1128, #0d1f50, #0a1128);
+  border-bottom: 2px solid var(--gold);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.header-balance {
+  font-size: 15px;
+  color: var(--gold-light);
+  font-weight: 600;
+}
+
+/* ── Welcome Screen ───────────────────────────────────────────── */
+#welcome-screen {
+  min-height: 100vh;
+  background: radial-gradient(ellipse at center, #0d1f50 0%, #03060f 70%);
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.kbc-logo-big {
+  font-size: clamp(36px, 8vw, 72px);
+  font-weight: 900;
+  color: var(--gold);
+  letter-spacing: 6px;
+  text-shadow: 0 0 40px rgba(245,197,24,0.5);
+  margin-bottom: 8px;
+}
+
+.kbc-tagline {
+  font-size: clamp(13px, 3vw, 18px);
+  color: var(--gold-light);
+  margin-bottom: 40px;
+  letter-spacing: 2px;
+}
+
+.welcome-form {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+  max-width: 420px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.welcome-form label {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 6px;
+  text-align: left;
+}
+
+.welcome-form input {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--white);
+  font-size: 16px;
+  margin-bottom: 20px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.welcome-form input:focus {
+  border-color: var(--gold);
+}
+
+.btn-gold {
+  background: var(--gold);
+  color: #000;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 14px 32px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  letter-spacing: 1px;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.btn-gold:hover  { background: var(--gold-light); }
+.btn-gold:active { transform: scale(0.98); }
+
+/* ── Game Screen Layout ───────────────────────────────────────── */
+#game-screen {
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: calc(100vh - 56px);
+  padding: 24px 16px;
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ── Question Panel (left) ────────────────────────────────────── */
+.question-panel {
+  flex: 1;
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Question number + prize */
+.q-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.q-prize-badge {
+  background: var(--gold);
+  color: #000;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+/* Question box */
+.question-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--gold);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  font-size: clamp(15px, 2.5vw, 18px);
+  line-height: 1.6;
+  min-height: 110px;
+  display: flex;
+  align-items: center;
+}
+
+/* Options grid */
+.options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.option-btn {
+  background: var(--bg-option);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  color: var(--white);
+  font-size: 14px;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.18s, border-color 0.18s, transform 0.1s;
+  line-height: 1.4;
+}
+
+.option-btn:hover:not(:disabled) {
+  background: #162050;
+  border-color: var(--gold);
+}
+
+.option-btn:active:not(:disabled) { transform: scale(0.98); }
+
+.option-letter {
+  background: var(--gold);
+  color: #000;
+  font-weight: 700;
+  font-size: 13px;
+  min-width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Option states */
+.option-btn.selected      { background: #1a2d6b; border-color: #4a7fff; }
+.option-btn.correct       { background: #0a3320; border-color: var(--correct); }
+.option-btn.wrong         { background: #3a0a0a; border-color: var(--wrong); }
+.option-btn.correct .option-letter { background: var(--correct); }
+.option-btn.wrong   .option-letter { background: var(--wrong); }
+.option-btn:disabled      { cursor: not-allowed; }
+
+/* Action row */
+.action-row {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-confirm {
+  flex: 1;
+  padding: 14px;
+  background: var(--gold);
+  color: #000;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-confirm:hover    { background: var(--gold-light); }
+.btn-confirm:disabled { background: #444; color: #888; cursor: not-allowed; }
+
+.btn-quit {
+  padding: 14px 20px;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.btn-quit:hover { color: var(--wrong); border-color: var(--wrong); }
+
+/* Feedback bar */
+.feedback-bar {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  font-size: 14px;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  transition: all 0.3s;
+}
+
+.feedback-bar.correct { border-color: var(--correct); color: var(--correct); }
+.feedback-bar.wrong   { border-color: var(--wrong);   color: var(--wrong); }
+.feedback-bar.info    { border-color: var(--gold);     color: var(--gold-light); }
+
+/* ── Sidebar (right) ──────────────────────────────────────────── */
+.sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Lifelines */
+.lifelines-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.card-title {
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 12px;
+}
+
+.lifeline-btn {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-option);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--white);
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.18s, border-color 0.18s;
+}
+
+.lifeline-btn:last-child { margin-bottom: 0; }
+.lifeline-btn:hover:not(:disabled) { background: #162050; border-color: var(--gold); }
+.lifeline-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.lifeline-icon {
+  font-size: 18px;
+  min-width: 22px;
+  text-align: center;
+}
+
+/* Prize ladder */
+.prize-ladder {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.prize-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--muted);
+  transition: background 0.2s;
+}
+
+.prize-row.current  { background: rgba(245,197,24,0.12); color: var(--gold); font-weight: 700; }
+.prize-row.cleared  { color: var(--correct); }
+.prize-row.safe     { border-left: 2px solid var(--correct); padding-left: 6px; }
+
+.prize-row .q-num  { font-size: 11px; min-width: 20px; }
+.prize-row .amount { font-size: 12px; }
+
+/* ── Result / End Screen ──────────────────────────────────────── */
+#result-screen {
+  min-height: 100vh;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 20px;
+  background: radial-gradient(ellipse at center, #0d1f50 0%, #03060f 70%);
+}
+
+.result-card {
+  background: var(--bg-card);
+  border: 2px solid var(--gold);
+  border-radius: var(--radius);
+  padding: 48px 40px;
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.result-emoji { font-size: 64px; margin-bottom: 16px; }
+
+.result-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+
+.result-name  {
+  font-size: 20px;
+  color: var(--white);
+  margin-bottom: 24px;
+}
+
+.result-amount {
+  font-size: 42px;
+  font-weight: 900;
+  color: var(--gold);
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+
+.result-label {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 36px;
+}
+
+.btn-play-again {
+  padding: 14px 48px;
+  background: var(--gold);
+  color: #000;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: background 0.2s;
+}
+
+.btn-play-again:hover { background: var(--gold-light); }
+
+/* ── Loading overlay ──────────────────────────────────────────── */
+#loader {
+  position: fixed;
+  inset: 0;
+  background: rgba(3,6,15,0.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  font-size: 18px;
+  color: var(--gold);
+}
+
+#loader.active { display: flex; }
+
+/* ── Responsive ───────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  header { padding: 10px 16px; }
+  .logo  { font-size: 16px; letter-spacing: 1px; }
+
+  #game-screen {
+    flex-direction: column;
+    padding: 16px 12px;
+    gap: 16px;
+  }
+
+  .sidebar { width: 100%; flex-direction: row; flex-wrap: wrap; }
+  .lifelines-card { flex: 1; min-width: 200px; }
+  .prize-ladder   { flex: 1; min-width: 200px; max-height: 200px; }
+
+  .options-grid { grid-template-columns: 1fr; }
+
+  .result-card { padding: 32px 20px; }
+  .result-amount { font-size: 32px; }
+}

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KBC — Kaun Banega Crorepati</title>
+
+  <!-- ── Stylesheet ── -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════
+     HEADER (shown during game)
+     ════════════════════════════════════════════════════ -->
+<header id="main-header" style="display:none;">
+  <span class="logo">KBC</span>
+  <span id="header-player" style="font-size:14px; color:#ffe680;"></span>
+  <span class="header-balance" id="header-balance">Balance: ₹0</span>
+</header>
+
+
+<!-- ════════════════════════════════════════════════════
+     SCREEN 1 — WELCOME
+     ════════════════════════════════════════════════════ -->
+<section id="welcome-screen" class="screen active">
+  <div class="kbc-logo-big">KBC</div>
+  <div class="kbc-tagline">Kaun Banega Crorepati</div>
+
+  <div class="welcome-form">
+    <label for="player-name">Your Name</label>
+    <input
+      type="text"
+      id="player-name"
+      placeholder="Enter your name…"
+      maxlength="40"
+      autocomplete="off"
+    />
+    <button class="btn-gold" id="start-btn">🎬 Start Playing</button>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════
+     SCREEN 2 — GAME
+     ════════════════════════════════════════════════════ -->
+<section id="game-screen" class="screen">
+
+  <!-- LEFT — Question panel -->
+  <div class="question-panel">
+
+    <!-- Q meta -->
+    <div class="q-meta">
+      <span id="q-number">Question 1 of 15</span>
+      <span class="q-prize-badge" id="q-prize">₹1,000</span>
+    </div>
+
+    <!-- Question text -->
+    <div class="question-box" id="q-text">
+      Loading question…
+    </div>
+
+    <!-- Answer options -->
+    <div class="options-grid" id="options-grid">
+      <!-- Populated by script.js -->
+    </div>
+
+    <!-- Confirm + Quit -->
+    <div class="action-row">
+      <button class="btn-confirm" id="confirm-btn" disabled>Lock In Answer</button>
+      <button class="btn-quit"    id="quit-btn">Quit &amp; Take Money</button>
+    </div>
+
+    <!-- Feedback -->
+    <div class="feedback-bar" id="feedback-bar">
+      Select your answer, then click Confirm.
+    </div>
+
+  </div><!-- /question-panel -->
+
+
+  <!-- RIGHT — Sidebar -->
+  <aside class="sidebar">
+
+    <!-- Lifelines -->
+    <div class="lifelines-card">
+      <p class="card-title">Lifelines</p>
+
+      <button class="lifeline-btn" data-lifeline="fifty_fifty">
+        <span class="lifeline-icon">5050</span>
+        <span>50 : 50</span>
+      </button>
+
+      <button class="lifeline-btn" data-lifeline="phone_a_friend">
+        <span class="lifeline-icon">📞</span>
+        <span>Phone a Friend</span>
+      </button>
+
+      <button class="lifeline-btn" data-lifeline="audience_poll">
+        <span class="lifeline-icon">📊</span>
+        <span>Audience Poll</span>
+      </button>
+    </div>
+
+    <!-- Prize ladder -->
+    <div class="prize-ladder" id="prize-ladder">
+      <p class="card-title">Prize Ladder</p>
+      <!-- Populated by script.js -->
+    </div>
+
+  </aside><!-- /sidebar -->
+
+</section><!-- /game-screen -->
+
+
+<!-- ════════════════════════════════════════════════════
+     SCREEN 3 — RESULT
+     ════════════════════════════════════════════════════ -->
+<section id="result-screen" class="screen">
+  <div class="result-card">
+    <div class="result-emoji" id="result-emoji">🏆</div>
+    <div class="result-title" id="result-title">Congratulations!</div>
+    <div class="result-name"  id="result-name-display"></div>
+    <div class="result-amount" id="result-amount-display">₹0</div>
+    <div class="result-label"  id="result-label">You've won:</div>
+    <button class="btn-play-again" id="play-again-btn">🔄 Play Again</button>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════
+     LOADER OVERLAY
+     ════════════════════════════════════════════════════ -->
+<div id="loader" aria-live="polite">⏳ Loading…</div>
+
+
+<!-- ════════════════════════════════════════════════════
+     SCRIPTS (at bottom for fast paint)
+     ════════════════════════════════════════════════════ -->
+<script>
+  /*
+   * Show header only on the game screen.
+   * MutationObserver watches for the "active" class change.
+   */
+  const header      = document.getElementById("main-header");
+  const gameScreen  = document.getElementById("game-screen");
+
+  const observer = new MutationObserver(() => {
+    header.style.display = gameScreen.classList.contains("active") ? "flex" : "none";
+  });
+  observer.observe(gameScreen, { attributes: true, attributeFilter: ["class"] });
+</script>
+
+<script src="script.js"></script>
+
+</body>
+</html>
