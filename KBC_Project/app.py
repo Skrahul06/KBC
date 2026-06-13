@@ -1,146 +1,141 @@
 """
 KBC - Kaun Banega Crorepati
-Python Flask Backend
-Run: pip install flask flask-cors
+Python Flask Dynamic Backend
+Run: pip install flask flask-cors requests
 Then: python app.py
 """
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+import requests
+import random
+import html
 
 app = Flask(__name__)
 CORS(app)  # Allow frontend to call this API
 
-# ─── Question Bank ──────────────────────────────────────────────────────────
-QUESTIONS = [
-    {
-        "id": 1,
-        "prize": "₹1,000",
-        "question": "Who is the all-time top international goal scorer in football?",
-        "options": {"A": "Lionel Messi", "B": "Cristiano Ronaldo", "C": "Neymar Jr.", "D": "Diego Maradona"},
-        "answer": "B",
-        "lifelines_used": []
-    },
-    {
-        "id": 2,
-        "prize": "₹2,000",
-        "question": "Which team won the IPL Championship title in 2025?",
-        "options": {"A": "Kolkata Knight Riders", "B": "Mumbai Indians", "C": "Royal Challengers Bengaluru", "D": "Chennai Super Kings"},
-        "answer": "C",
-        "lifelines_used": []
-    },
-    {
-        "id": 3,
-        "prize": "₹3,000",
-        "question": "Which biriyani restaurant in Kolkata is popularly known as 'Dada Boudi'?",
-        "options": {"A": "Arsalan", "B": "Aminia", "C": "D Bapi's", "D": "Dada Boudi Hotel"},
-        "answer": "D",
-        "lifelines_used": []
-    },
-    {
-        "id": 4,
-        "prize": "₹5,000",
-        "question": "Which programming language is consistently ranked #1 by the TIOBE Index?",
-        "options": {"A": "C", "B": "C++", "C": "Python", "D": "Java"},
-        "answer": "C",
-        "lifelines_used": []
-    },
-    {
-        "id": 5,
-        "prize": "₹10,000",
-        "question": "Complete the famous Bengali tongue-twister: 'Ma ka ladle meow...'?",
-        "options": {"A": "GOP GOP", "B": "GOP GOP GOP", "C": "GOK GOK", "D": "GUP GUP"},
-        "answer": "B",
-        "lifelines_used": []
-    },
-    {
-        "id": 6,
-        "prize": "₹20,000",
-        "question": "What is the capital city of West Bengal?",
-        "options": {"A": "Howrah", "B": "Durgapur", "C": "Kolkata", "D": "Siliguri"},
-        "answer": "C",
-        "lifelines_used": []
-    },
-    {
-        "id": 7,
-        "prize": "₹40,000",
-        "question": "Which Indian cricketer is known as 'The Wall'?",
-        "options": {"A": "Sourav Ganguly", "B": "Rahul Dravid", "C": "Sachin Tendulkar", "D": "VVS Laxman"},
-        "answer": "B",
-        "lifelines_used": []
-    },
-    {
-        "id": 8,
-        "prize": "₹80,000",
-        "question": "In which year did India gain independence?",
-        "options": {"A": "1945", "B": "1946", "C": "1947", "D": "1948"},
-        "answer": "C",
-        "lifelines_used": []
-    },
-    {
-        "id": 9,
-        "prize": "₹1,60,000",
-        "question": "Who wrote the Indian national anthem 'Jana Gana Mana'?",
-        "options": {"A": "Bankim Chandra Chatterjee", "B": "Rabindranath Tagore", "C": "Subramanya Bharati", "D": "Sarojini Naidu"},
-        "answer": "B",
-        "lifelines_used": []
-    },
-    {
-        "id": 10,
-        "prize": "₹3,20,000",
-        "question": "Which planet in our solar system has the most moons?",
-        "options": {"A": "Jupiter", "B": "Saturn", "C": "Uranus", "D": "Neptune"},
-        "answer": "B",
-        "lifelines_used": []
-    },
-    {
-        "id": 11,
-        "prize": "₹6,40,000",
-        "question": "What is the largest organ in the human body?",
-        "options": {"A": "Liver", "B": "Brain", "C": "Skin", "D": "Intestine"},
-        "answer": "C",
-        "lifelines_used": []
-    },
-    {
-        "id": 12,
-        "prize": "₹12,50,000",
-        "question": "Who invented the World Wide Web (WWW)?",
-        "options": {"A": "Bill Gates", "B": "Steve Jobs", "C": "Linus Torvalds", "D": "Tim Berners-Lee"},
-        "answer": "D",
-        "lifelines_used": []
-    },
-    {
-        "id": 13,
-        "prize": "₹25,00,000",
-        "question": "Which element has the chemical symbol 'Au'?",
-        "options": {"A": "Silver", "B": "Gold", "C": "Copper", "D": "Aluminium"},
-        "answer": "B",
-        "lifelines_used": []
-    },
-    {
-        "id": 14,
-        "prize": "₹50,00,000",
-        "question": "What is the speed of light in vacuum (approximately)?",
-        "options": {"A": "3 × 10⁸ m/s", "B": "3 × 10⁶ m/s", "C": "3 × 10¹⁰ m/s", "D": "3 × 10⁴ m/s"},
-        "answer": "A",
-        "lifelines_used": []
-    },
-    {
-        "id": 15,
-        "prize": "₹1,00,00,000",
-        "question": "Which mathematician is known as the 'Prince of Mathematics'?",
-        "options": {"A": "Isaac Newton", "B": "Leonhard Euler", "C": "Carl Friedrich Gauss", "D": "Blaise Pascal"},
-        "answer": "C",
-        "lifelines_used": []
-    },
-]
+# Global session dictionary to keep track of active games and their generated questions
+# In a production app, use a real database/Redis session handler
+GAME_SESSIONS = {}
 
 # Safe milestones — money kept on wrong answer
 SAFE_MILESTONES = {5: "₹10,000", 10: "₹3,20,000", 15: "₹1,00,00,000"}
 
-# ─── Helper ─────────────────────────────────────────────────────────────────
-def get_question_data(q):
-    """Return question dict without the answer (for client)."""
+PRIZE_LADDER = [
+    {"id": 1, "prize": "₹1,00,0"}, {"id": 2, "prize": "₹2,000"}, {"id": 3, "prize": "₹3,000"},
+    {"id": 4, "prize": "₹5,000"}, {"id": 5, "prize": "₹10,000"}, {"id": 6, "prize": "₹20,000"},
+    {"id": 7, "prize": "₹40,000"}, {"id": 8, "prize": "₹80,000"}, {"id": 9, "prize": "₹1,60,000"},
+    {"id": 10, "prize": "₹3,20,000"}, {"id": 11, "prize": "₹6,40,000"}, {"id": 12, "prize": "₹12,50,000"},
+    {"id": 13, "prize": "₹25,00,000"}, {"id": 14, "prize": "₹50,00,000"}, {"id": 15, "prize": "₹1,00,00,000"}
+]
+
+TOTAL_QUESTIONS = len(PRIZE_LADDER)
+
+# ─── Coding Backup Bank (In case OpenTDB api rate limits or lacks specific tech codes) ───
+CODING_QUESTIONS = [
+    {"question": "What does CSS stand for?", "options": ["Cascading Style Sheets", "Creative Style Sheets", "Computer Style Sheets", "Colorful Style Sheets"], "answer": "Cascading Style Sheets"},
+    {"question": "Which programming language is known as the backbone of web development interactivity?", "options": ["Python", "Java", "JavaScript", "C++"], "answer": "JavaScript"},
+    {"question": "In Python, which keyword is used to start a function definition?", "options": ["func", "define", "def", "function"], "answer": "def"},
+    {"question": "What is the time complexity of searching in a perfectly balanced Binary Search Tree (BST)?", "options": ["O(1)", "O(n)", "O(log n)", "O(n log n)"], "answer": "O(log n)"},
+    {"question": "Which data structure operates on a Last-In-First-Out (LIFO) paradigm?", "options": ["Queue", "Stack", "Linked List", "Heap"], "answer": "Stack"},
+    {"question": "What Git command is used to save changes to your local repository?", "options": ["git push", "git save", "git commit", "git add"], "answer": "git commit"},
+    {"question": "Which SQL statement is used to extract data from a database?", "options": ["EXTRACT", "GET", "OPEN", "SELECT"], "answer": "SELECT"},
+    {"question": "What does API stand for?", "options": ["Application Programming Interface", "Automated Program Integration", "Advanced Processing Instrument", "App Protocol Interlink"], "answer": "Application Programming Interface"}
+]
+
+# ─── Helper Functions ────────────────────────────────────────────────────────
+
+def fetch_dynamic_questions():
+    """Fetches random questions across easy, medium, and hard difficulty brackets from OpenTDB API."""
+    generated_list = []
+    
+    # KBC Progression Difficulty Mapping: 
+    # Q1-5: Easy, Q6-10: Medium, Q11-15: Hard
+    difficulty_map = (["easy"] * 5) + (["medium"] * 5) + (["hard"] * 5)
+    
+    # Categories: Mix of General Knowledge, Computers/Science, and Gadgets
+    categories = [9, 18, 30] 
+
+    for idx, difficulty in enumerate(difficulty_map, start=1):
+        question_added = False
+        
+        # Inject random programming specific challenges into mid-to-high tier sets
+        if idx in [4, 7, 11, 13] and CODING_QUESTIONS:
+            local_q = random.choice(CODING_QUESTIONS)
+            shuffled_opts = list(local_q["options"])
+            random.shuffle(shuffled_opts)
+            
+            # Map values to option letters A, B, C, D
+            opt_letters = ["A", "B", "C", "D"]
+            opt_dict = {opt_letters[i]: shuffled_opts[i] for i in range(4)}
+            correct_letter = [k for k, v in opt_dict.items() if v == local_q["answer"]][0]
+
+            generated_list.append({
+                "id": idx,
+                "prize": PRIZE_LADDER[idx-1]["prize"],
+                "question": local_q["question"],
+                "options": opt_dict,
+                "answer": correct_letter
+            })
+            continue
+
+        # Try up to 3 times to hit the external API for variety
+        for _ in range(3):
+            cat = random.choice(categories)
+            try:
+                url = f"https://opentdb.com/api.php?amount=1&category={cat}&difficulty={difficulty}&type=multiple"
+                response = requests.get(url, timeout=4).json()
+                
+                if response.get("response_code") == 0 and response.get("results"):
+                    data = response["results"][0]
+                    
+                    # Clean escaped HTML codes coming out of OpenTDB
+                    question_text = html.unescape(data["question"])
+                    correct_ans = html.unescape(data["correct_answer"])
+                    wrong_ans = [html.unescape(x) for x in data["incorrect_answers"]]
+                    
+                    all_opts = wrong_ans + [correct_ans]
+                    random.shuffle(all_opts)
+                    
+                    opt_letters = ["A", "B", "C", "D"]
+                    opt_dict = {opt_letters[i]: all_opts[i] for i in range(4)}
+                    correct_letter = [k for k, v in opt_dict.items() if v == correct_ans][0]
+                    
+                    generated_list.append({
+                        "id": idx,
+                        "prize": PRIZE_LADDER[idx-1]["prize"],
+                        "question": question_text,
+                        "options": opt_dict,
+                        "answer": correct_letter
+                    })
+                    question_added = True
+                    break
+            except Exception:
+                continue # Fall through to fallback loop if network drops
+                
+        # Hard fallback local placeholder system to make sure the server NEVER crashes 
+        if not question_added:
+            fallback_pool = CODING_QUESTIONS if CODING_QUESTIONS else [{"question": "Placeholder Quiz item?", "options": ["A","B","C","D"], "answer": "A"}]
+            dummy = random.choice(fallback_pool)
+            shuffled_opts = list(dummy["options"]) if "options" in dummy else ["True Choice", "False Option 1", "False Option 2", "False Option 3"]
+            random.shuffle(shuffled_opts)
+            
+            opt_dict = {"A": shuffled_opts[0], "B": shuffled_opts[1], "C": shuffled_opts[2], "D": shuffled_opts[3]}
+            ans_val = dummy.get("answer", shuffled_opts[0])
+            correct_letter = next((k for k, v in opt_dict.items() if v == ans_val), "A")
+            
+            generated_list.append({
+                "id": idx,
+                "prize": PRIZE_LADDER[idx-1]["prize"],
+                "question": dummy.get("question", f"Dynamic Coding Question Challenge #{idx}"),
+                "options": opt_dict,
+                "answer": correct_letter
+            })
+            
+    return generated_list
+
+def get_clean_client_question(q):
+    """Filters out answer fields securely before sharing data with UI client."""
     return {
         "id": q["id"],
         "prize": q["prize"],
@@ -149,52 +144,65 @@ def get_question_data(q):
     }
 
 
-# ─── Routes ─────────────────────────────────────────────────────────────────
+# ─── Updated API Endpoints ─────────────────────────────────────────────────
 
 @app.route("/api/start", methods=["GET"])
 def start_game():
-    """Return all questions (without answers) and game metadata."""
+    """Generates a fresh completely unique random 15-question array pool for this session."""
+    # Generate random question layout list for this current runtime run
+    fresh_session_questions = fetch_dynamic_questions()
+    
+    # Store globally referencing user tracking key session index identifier token logic
+    # Using a simple single-session pattern. (Resets every time /api/start runs)
+    GAME_SESSIONS["current_game"] = fresh_session_questions
+
     return jsonify({
-        "total_questions": len(QUESTIONS),
+        "total_questions": TOTAL_QUESTIONS,
         "safe_milestones": SAFE_MILESTONES,
-        "prize_ladder": [{"id": q["id"], "prize": q["prize"]} for q in QUESTIONS],
+        "prize_ladder": PRIZE_LADDER,
         "lifelines": ["fifty_fifty", "phone_a_friend", "audience_poll"],
     })
 
 
 @app.route("/api/question/<int:q_id>", methods=["GET"])
 def get_question(q_id):
-    """Return a specific question by ID (1-indexed)."""
-    q = next((x for x in QUESTIONS if x["id"] == q_id), None)
+    """Fetches specific target indexed entry tracking data from current session matrix storage."""
+    questions = GAME_SESSIONS.get("current_game")
+    if not questions:
+        return jsonify({"error": "No active session. Please start game first."}), 400
+        
+    q = next((x for x in questions if x["id"] == q_id), None)
     if not q:
-        return jsonify({"error": "Question not found"}), 404
-    return jsonify(get_question_data(q))
+        return jsonify({"error": "Question tracking index limit exceeded"}), 404
+        
+    return jsonify(get_clean_client_question(q))
 
 
 @app.route("/api/answer", methods=["POST"])
 def check_answer():
-    """
-    POST body: { "question_id": 1, "selected": "B" }
-    Returns: correct/wrong, correct_answer, prize_won, safe_prize, next_question_id
-    """
-    data = request.get_json()
+    """Evaluates client answer submission match records across dynamically compiled indexes."""
+    questions = GAME_SESSIONS.get("current_game")
+    if not questions:
+        return jsonify({"error": "No game context database tracking array index map records found"}), 400
+
+    data = request.get_json() or {}
     q_id = data.get("question_id")
-    selected = data.get("selected", "").upper().strip()
+    selected = str(data.get("selected", "")).upper().strip()
 
-    q = next((x for x in QUESTIONS if x["id"] == q_id), None)
+    q = next((x for x in questions if x["id"] == q_id), None)
     if not q:
-        return jsonify({"error": "Invalid question ID"}), 400
+        return jsonify({"error": "Invalid target question tracking key index parameters"}), 400
 
-    correct = selected == q["answer"]
+    correct = (selected == q["answer"])
 
-    # Determine safe money if wrong
+    # Establish safety ladder fallback benchmarks
     safe_prize = "₹0"
     for milestone_id, prize in sorted(SAFE_MILESTONES.items(), reverse=True):
         if q_id > milestone_id:
             safe_prize = prize
             break
 
-    next_id = q_id + 1 if correct and q_id < len(QUESTIONS) else None
+    next_id = q_id + 1 if (correct and q_id < TOTAL_QUESTIONS) else None
 
     return jsonify({
         "correct": correct,
@@ -202,28 +210,24 @@ def check_answer():
         "correct_option_text": q["options"][q["answer"]],
         "selected": selected,
         "prize_won": q["prize"] if correct else safe_prize,
-        "is_final": q_id == len(QUESTIONS) and correct,
+        "is_final": (q_id == TOTAL_QUESTIONS and correct),
         "next_question_id": next_id,
     })
 
 
 @app.route("/api/lifeline/fifty_fifty", methods=["POST"])
 def fifty_fifty():
-    """
-    POST body: { "question_id": 1 }
-    Removes 2 wrong answers, returns remaining 2 options.
-    """
-    data = request.get_json()
-    q_id = data.get("question_id")
+    questions = GAME_SESSIONS.get("current_game")
+    if not questions: return jsonify({"error": "Session missing"}), 400
 
-    q = next((x for x in QUESTIONS if x["id"] == q_id), None)
-    if not q:
-        return jsonify({"error": "Question not found"}), 404
+    data = request.get_json() or {}
+    q_id = data.get("question_id")
+    q = next((x for x in questions if x["id"] == q_id), None)
+    
+    if not q: return jsonify({"error": "Question target missing"}), 404
 
     correct = q["answer"]
-    wrong_options = [k for k in q["options"] if k != correct]
-
-    import random
+    wrong_options = [k for k in q["options"].keys() if k != correct]
     to_remove = random.sample(wrong_options, 2)
 
     remaining = {k: v for k, v in q["options"].items() if k not in to_remove}
@@ -232,33 +236,26 @@ def fifty_fifty():
 
 @app.route("/api/lifeline/audience_poll", methods=["POST"])
 def audience_poll():
-    """
-    POST body: { "question_id": 1 }
-    Returns simulated audience vote percentages.
-    """
-    import random
+    questions = GAME_SESSIONS.get("current_game")
+    if not questions: return jsonify({"error": "Session missing"}), 400
 
-    data = request.get_json()
+    data = request.get_json() or {}
     q_id = data.get("question_id")
-
-    q = next((x for x in QUESTIONS if x["id"] == q_id), None)
-    if not q:
-        return jsonify({"error": "Question not found"}), 404
+    q = next((x for x in questions if x["id"] == q_id), None)
+    
+    if not q: return jsonify({"error": "Question not found"}), 404
 
     correct = q["answer"]
     options = list(q["options"].keys())
 
-    # Simulate: correct answer gets majority vote with some noise
-    correct_vote = random.randint(50, 75)
+    correct_vote = random.randint(58, 82) # Dynamically weight audience to lean smart
     remaining = 100 - correct_vote
     others = [k for k in options if k != correct]
 
     split = sorted([random.randint(0, remaining) for _ in range(len(others) - 1)] + [remaining])
     parts = [split[0]] + [split[i] - split[i-1] for i in range(1, len(split))]
 
-    votes = {}
-    for i, opt in enumerate(others):
-        votes[opt] = parts[i]
+    votes = {opt: parts[i] for i, opt in enumerate(others)}
     votes[correct] = correct_vote
 
     return jsonify({"votes": votes})
@@ -266,35 +263,25 @@ def audience_poll():
 
 @app.route("/api/lifeline/phone_a_friend", methods=["POST"])
 def phone_a_friend():
-    """
-    POST body: { "question_id": 1 }
-    Returns a simulated friend hint message.
-    """
-    import random
+    questions = GAME_SESSIONS.get("current_game")
+    if not questions: return jsonify({"error": "Session missing"}), 400
 
-    data = request.get_json()
+    data = request.get_json() or {}
     q_id = data.get("question_id")
-
-    q = next((x for x in QUESTIONS if x["id"] == q_id), None)
-    if not q:
-        return jsonify({"error": "Question not found"}), 404
+    q = next((x for x in questions if x["id"] == q_id), None)
+    
+    if not q: return jsonify({"error": "Question not found"}), 404
 
     correct = q["answer"]
     correct_text = q["options"][correct]
 
-    confidence = random.choice(["pretty sure", "almost certain", "quite confident", "not 100% sure but think"])
-    friends = ["Rahul", "Priya", "Amit", "Sunita", "Vikram"]
-    friend = random.choice(friends)
+    confidence = random.choice(["absolutely certain", "90% confident", "pretty sure", "leaning heavily towards"])
+    friend = random.choice(["Rahul", "Priya", "Amit", "Ananya", "Vikram"])
 
-    message = (
-        f"{friend} says: 'Yaar, I'm {confidence} the answer is "
-        f"({correct}) {correct_text}. You should go with it!'"
-    )
-
+    message = f"{friend} says: 'Hey! I am {confidence} that the correct option is ({correct}) {correct_text}.'"
     return jsonify({"message": message, "friend": friend})
 
 
-# ─── Entry Point ─────────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    print("🎬 KBC Server starting on http://localhost:5000")
+    print("🎬 Highly Dynamic KBC Server active on http://localhost:5000")
     app.run(debug=True, port=5000)
